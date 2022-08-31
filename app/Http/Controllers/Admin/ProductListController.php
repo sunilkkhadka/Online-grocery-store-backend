@@ -122,11 +122,59 @@ class ProductListController extends Controller
         return $searchProduct;
     }
 
-    public function SimilarProducts($subcategory)
+    public function getSubcategory($subcategory)
     {
         $products = ProductList::where('subcategory_id', $subcategory)->orderBy('id', 'DESC')->limit(5)->get();
-        return $products;
+        return $products->subcategory;
     }
+    
+    public function getRecommendedProducts(Product $product){
+        
+       
+       	$selectedProduct = $product->productId;
+
+       	$productScores = [];
+
+       	$categories = [];
+
+       	foreach ($product->category as $cat) {
+
+           		array_push($categories, $cat);
+
+       	}
+
+       	$this->addCategoriesScores($categories, $productScores);
+
+       	arsort($productScores);
+
+       	unset($productScores[$selectedProduct]);
+
+       	$suggestedProduct = array_slice($productScores, 0, 10, true);
+
+       	return $suggestedProduct;
+         
+    }
+    
+    public function addCategoriesScores($categories, $productScores) {
+
+       foreach ($categories as $category) {
+
+           foreach ($category->getProductByCategory() as $product) {
+
+               if (isset($productScores[$product->id])) {
+
+                   $productScores[$product->id] += 1;
+
+               } else {
+
+                   $productScores[$product->id] = 1;
+               }
+
+           }
+
+       }
+
+   }
 
     // ======================================END FOR API=================================================
 
